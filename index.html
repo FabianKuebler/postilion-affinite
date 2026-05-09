@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Nuklei-Finder (Prototyp)</title>
+<title>Postilion d'Affinité</title>
 <style>
   * { box-sizing: border-box; }
   body {
@@ -70,7 +70,7 @@
   }
   .chip.neutral { background: #f3f3f3; border: 1px solid #ddd; }
   .chip.yes { background: #c8e6c9; border: 1px solid #66bb6a; }
-  .chip.no { background: #ffcdd2; border: 1px solid #e57373; text-decoration: line-through; }
+  .chip.no { background: #ffcdd2; border: 1px solid #e57373; }
 
   .stats {
     color: #555;
@@ -162,19 +162,19 @@
 </head>
 <body>
 
-<h1>Nuklei-Finder</h1>
-<p class="subtitle">Prototyp zum Ausprobieren — Zegg</p>
+<h1>Postilion d'Affinité</h1>
+<p class="subtitle">Nuklei finden — ein Prototyp</p>
 
 <div class="banner">
-  <strong>Hinweis:</strong> Das ist ein Prototyp mit 60 fiktiven Namen. Die Reaktionen
-  der „anderen" werden bei jedem Laden zufällig erzeugt — also keine echten Aussagen.
-  Beim Neuladen ist alles wieder weg.
+  <strong>Hinweis:</strong> Das ist eine Fake-Version mit 60 erfundenen Namen.
+  Die Reaktionen der anderen werden bei jedem Laden zufällig gewürfelt — also
+  keine echten Aussagen. Beim Neuladen ist alles wieder weg.
 </div>
 
 <!-- Schritt 1: Name -->
 <div id="step-name" class="step active">
   <h2>Wie heißt du?</h2>
-  <p>Gib einen Namen ein (gerne erfunden) — damit du selbst in den Gruppen erscheinen kannst.</p>
+  <p>Gib deinen Namen ein (gerne erfunden) — damit du selbst in den Gruppen auftauchst.</p>
   <input type="text" id="name-input" placeholder="Dein Name" autofocus>
   <button class="primary" onclick="startMarking()">Los</button>
 </div>
@@ -186,9 +186,9 @@
     Klick zykelt durch:
     <span class="chip neutral">neutral</span>
     →
-    <span class="chip yes">YES</span>
+    <span class="chip yes">YES!</span>
     →
-    <span class="chip no">NO</span>
+    <span class="chip no">NO...</span>
   </p>
   <div class="stats" id="mark-stats"></div>
   <div id="name-grid" class="name-grid"></div>
@@ -198,7 +198,7 @@
 <!-- Schritt 3: Ergebnisse -->
 <div id="step-results" class="step">
   <div class="results-header">
-    <h2 style="margin:0;">Deine Nuklei</h2>
+    <h2 style="margin:0;">Deine möglichen Nuklei</h2>
     <button onclick="goBack()">← Zurück zum Markieren</button>
   </div>
 
@@ -352,7 +352,7 @@ function updateStats() {
     else neu++;
   }
   document.getElementById("mark-stats").textContent =
-    `${yes} YES · ${no} NO · ${neu} neutral`;
+    `${yes} YES! · ${no} NO... · ${neu} neutral`;
 }
 
 function showStep(name) {
@@ -493,7 +493,7 @@ function countYesEdges(group) {
 function renderTab1(matches) {
   const div = document.getElementById("tab-1");
   let html = `<div class="tab-explainer">
-    Personen, bei denen <strong>du YES</strong> markiert hast und <strong>sie auch dich YES</strong>.
+    Personen, bei denen ihr euch <strong>gegenseitig YES!</strong> gegeben habt.
   </div>`;
   if (matches.length === 0) {
     html += `<div class="empty">Keine 1:1-Matches.</div>`;
@@ -522,7 +522,7 @@ function renderGroups(divId, groups, explainer, emptyText) {
   });
   const total = groups.length;
   const shown = Math.min(total, DISPLAY_CAP);
-  html += `<div class="stats">${total} Gruppen gefunden${total > shown ? ` — zeige die Top ${shown} (sortiert nach Größe, dann YES-Dichte)` : ""}</div>`;
+  html += `<div class="stats">${total} Gruppen gefunden${total > shown ? ` — zeige die Top ${shown} (sortiert nach Größe, dann YES!-Dichte)` : ""}</div>`;
   for (let k = 0; k < shown; k++) {
     const g = groups[k];
     const yes = countYesEdges(g);
@@ -533,7 +533,7 @@ function renderGroups(divId, groups, explainer, emptyText) {
         : escapeHtml(NAMES[idx])
     ).join(" · ");
     html += `<div class="group">
-      <div class="meta">${g.length} Personen · ${yes}/${totalEdges} YES-Beziehungen</div>
+      <div class="meta">${g.length} Menschen · ${yes}/${totalEdges} YES!-Beziehungen</div>
       <div class="members">${members}</div>
     </div>`;
   }
@@ -561,12 +561,12 @@ function computeAndShow() {
   renderTab1(t1);
   renderGroups(
     "tab-2", t2,
-    "Gruppen, in denen <strong>jede:r mit jedem anderen ein gegenseitiges YES</strong> hat (4–7 Personen, du inklusive). Nur maximale Gruppen werden gezeigt.",
+    "Kleinere Gruppen (ab 4 Menschen, du inklusive), in denen <strong>alle einander YES!</strong> gegeben haben. Nur maximale Gruppen werden gezeigt.",
     "Keine strengen Gruppen gefunden."
   );
   renderGroups(
     "tab-3", t3,
-    "Gruppen ohne NO zwischen den Mitgliedern, in denen <strong>jede:r YES von mindestens der Hälfte der anderen erhält</strong> (aufgerundet). Nur maximale Gruppen.",
+    "Gruppen ohne NO... untereinander, in denen <strong>jede:r von mindestens der Hälfte der anderen ein YES!</strong> bekommt. Nur maximale Gruppen.",
     "Keine lockeren Gruppen gefunden."
   );
 
