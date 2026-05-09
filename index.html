@@ -280,7 +280,7 @@ function biasUserIncoming() {
   for (let i = 0; i < NAMES.length; i++) {
     const userMark = matrix[userIdx][i];
 
-    // Anteil der User-YES-Ziele, die auch i YES'd hat (ohne i selbst)
+    // Anteil der User-YES-Ziele, die auch i YES'd hat (ohne i selbst) — geteilte Vibe
     let overlap = 0, denom = 0;
     for (const t of userYes) {
       if (t === i) continue;
@@ -298,8 +298,7 @@ function biasUserIncoming() {
       pYes = 0.04;
       pNo = 0.40;
     } else {
-      // neutral markiert: Grundrate plus Vibe-Bonus
-      pYes = 0.08 + overlapRatio * 0.30;   // 8–38%
+      pYes = 0.10;
       pNo = 0.10;
     }
 
@@ -426,12 +425,13 @@ function findLooseGroups() {
   function checkValid(group) {
     const n = group.length;
     const threshold = Math.ceil((n - 1) / 2);
+    // jede:r muss mindestens der Hälfte der anderen ein YES! gegeben haben
     for (const m of group) {
-      let yesIn = 0;
+      let yesOut = 0;
       for (const o of group) {
-        if (o !== m && matrix[o][m] === YES) yesIn++;
+        if (o !== m && matrix[m][o] === YES) yesOut++;
       }
-      if (yesIn < threshold) return false;
+      if (yesOut < threshold) return false;
     }
     return true;
   }
@@ -567,7 +567,7 @@ function computeAndShow() {
   );
   renderGroups(
     "tab-3", t3,
-    "Gruppen ohne NO... untereinander, in denen <strong>jede:r von mindestens der Hälfte der anderen ein YES!</strong> bekommt. Nur maximale Gruppen.",
+    "Gruppen ohne NO... untereinander, in denen <strong>jede:r mindestens der Hälfte der anderen ein YES!</strong> gegeben hat. Nur maximale Gruppen.",
     "Keine lockeren Gruppen gefunden."
   );
 
