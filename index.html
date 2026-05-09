@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nuklei-Finder (Prototyp)</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    max-width: 860px;
+    margin: 1.5rem auto;
+    padding: 0 1rem 4rem;
+    line-height: 1.5;
+    color: #222;
+    background: #fff;
+  }
+  h1 { margin: 0 0 0.25rem; font-size: 1.7rem; }
+  h2 { margin-top: 1.5rem; font-size: 1.25rem; }
+  .subtitle { margin-top: 0; color: #777; }
+
+  .banner {
+    background: #fff8dc;
+    border: 1px solid #e6d570;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    margin: 1rem 0 1.5rem;
+    font-size: 0.9rem;
+  }
+
+  .step { display: none; }
+  .step.active { display: block; }
+
+  input[type="text"] {
+    font-size: 1rem;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid #bbb;
+    border-radius: 6px;
+    width: 280px;
+    max-width: 100%;
+  }
+  button {
+    font-size: 1rem;
+    padding: 0.55rem 1.1rem;
+    border: 1px solid #999;
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    margin: 0.25rem 0.25rem 0.25rem 0;
+  }
+  button.primary {
+    background: #4a7fc2;
+    color: white;
+    border-color: #4a7fc2;
+  }
+  button:hover { background: #f0f0f0; }
+  button.primary:hover { background: #3a6fb0; }
+
+  .legend {
+    font-size: 0.9rem;
+    color: #555;
+    margin: 0.5rem 0 0.75rem;
+  }
+  .legend .chip {
+    display: inline-block;
+    padding: 0.15rem 0.55rem;
+    border-radius: 4px;
+    margin: 0 0.25rem;
+    font-size: 0.85rem;
+  }
+  .chip.neutral { background: #f3f3f3; border: 1px solid #ddd; }
+  .chip.yes { background: #c8e6c9; border: 1px solid #66bb6a; }
+  .chip.no { background: #ffcdd2; border: 1px solid #e57373; text-decoration: line-through; }
+
+  .stats {
+    color: #555;
+    font-size: 0.92rem;
+    margin: 0.5rem 0 0.75rem;
+  }
+
+  .name-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 0.4rem;
+    margin: 0.75rem 0 1.25rem;
+  }
+  .name-cell {
+    padding: 0.55rem 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.08s, border-color 0.08s;
+    background: #f8f8f8;
+    font-size: 0.95rem;
+  }
+  .name-cell:hover { border-color: #888; }
+  .name-cell.yes { background: #c8e6c9; border-color: #66bb6a; }
+  .name-cell.no { background: #ffcdd2; border-color: #e57373; text-decoration: line-through; }
+
+  .tabs {
+    display: flex;
+    gap: 0.25rem;
+    border-bottom: 2px solid #ddd;
+    margin: 1rem 0 0;
+    flex-wrap: wrap;
+  }
+  .tab {
+    padding: 0.55rem 1rem;
+    border: none;
+    background: transparent;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    border-radius: 0;
+    color: #555;
+  }
+  .tab:hover { background: #f5f5f5; color: #222; }
+  .tab.active { border-bottom-color: #4a7fc2; color: #222; font-weight: 600; }
+
+  .tab-content { display: none; padding-top: 1rem; }
+  .tab-content.active { display: block; }
+  .tab-explainer {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    background: #f7f7f7;
+    border-left: 3px solid #4a7fc2;
+    border-radius: 0 4px 4px 0;
+  }
+
+  .group {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 0.7rem 0.85rem;
+    margin-bottom: 0.5rem;
+    background: #fafafa;
+  }
+  .group .meta {
+    font-size: 0.82rem;
+    color: #777;
+    margin-bottom: 0.2rem;
+  }
+  .group .members { font-size: 1rem; }
+  .group .you {
+    font-weight: 700;
+    background: #fff8dc;
+    padding: 0 0.25rem;
+    border-radius: 3px;
+  }
+
+  .empty { color: #999; font-style: italic; padding: 0.5rem 0; }
+
+  .results-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+</style>
+</head>
+<body>
+
+<h1>Nuklei-Finder</h1>
+<p class="subtitle">Prototyp zum Ausprobieren — Zegg</p>
+
+<div class="banner">
+  <strong>Hinweis:</strong> Das ist ein Prototyp mit 60 fiktiven Namen. Die Reaktionen
+  der „anderen" werden bei jedem Laden zufällig erzeugt — also keine echten Aussagen.
+  Beim Neuladen ist alles wieder weg.
+</div>
+
+<!-- Schritt 1: Name -->
+<div id="step-name" class="step active">
+  <h2>Wie heißt du?</h2>
+  <p>Gib einen Namen ein (gerne erfunden) — damit du selbst in den Gruppen erscheinen kannst.</p>
+  <input type="text" id="name-input" placeholder="Dein Name" autofocus>
+  <button class="primary" onclick="startMarking()">Los</button>
+</div>
+
+<!-- Schritt 2: Markieren -->
+<div id="step-mark" class="step">
+  <h2>Markiere die anderen Bewohner:innen</h2>
+  <p class="legend">
+    Klick zykelt durch:
+    <span class="chip neutral">neutral</span>
+    →
+    <span class="chip yes">YES</span>
+    →
+    <span class="chip no">NO</span>
+  </p>
+  <div class="stats" id="mark-stats"></div>
+  <div id="name-grid" class="name-grid"></div>
+  <button class="primary" onclick="computeAndShow()">Weiter →</button>
+</div>
+
+<!-- Schritt 3: Ergebnisse -->
+<div id="step-results" class="step">
+  <div class="results-header">
+    <h2 style="margin:0;">Deine Nuklei</h2>
+    <button onclick="goBack()">← Zurück zum Markieren</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" id="tab-btn-1" onclick="showTab(1)">1:1</button>
+    <button class="tab" id="tab-btn-2" onclick="showTab(2)">Strenge Gruppen</button>
+    <button class="tab" id="tab-btn-3" onclick="showTab(3)">Lockere Gruppen</button>
+  </div>
+
+  <div id="tab-1" class="tab-content active"></div>
+  <div id="tab-2" class="tab-content"></div>
+  <div id="tab-3" class="tab-content"></div>
+</div>
+
+<script>
+// ============ Daten ============
+const NAMES = [
+  "Anna","Lukas","Marie","Jonas","Sophie","Felix","Lena","Max","Hannah","Paul",
+  "Lara","Tim","Lisa","Tom","Julia","Niklas","Laura","Jan","Emma","David",
+  "Sarah","Finn","Mia","Leon","Clara","Ben","Nora","Elias","Ida","Noah",
+  "Frieda","Theo","Greta","Henri","Pia","Moritz","Lina","Jakob","Mara","Samuel",
+  "Johanna","Lennart","Helena","Erik","Antonia","Linus","Charlotte","Benedikt","Karla","Florian",
+  "Marlene","Simon","Rosa","Konstantin","Ronja","Vincent","Emilia","Rasmus","Magdalena","Oskar"
+];
+
+const NEUTRAL = 0, YES = 1, NO = 2;
+const MIN_GROUP = 4, MAX_GROUP = 7;
+
+// matrix[i][j] = was Person i über Person j denkt
+let matrix = [];
+let userName = "";
+let userIdx = NAMES.length; // user belegt den letzten Index
+let clusters = []; // cluster index pro Fake-Person (0..K-1)
+const NUM_CLUSTERS = 5;
+
+function generateMatrix() {
+  const N = NAMES.length;
+  // Cluster-Zuordnung: jede:r in einen von K Vibes
+  clusters = [];
+  for (let i = 0; i < N; i++) clusters.push(Math.floor(Math.random() * NUM_CLUSTERS));
+
+  matrix = [];
+  for (let i = 0; i < N; i++) {
+    const row = [];
+    for (let j = 0; j < N; j++) {
+      if (i === j) { row.push(NEUTRAL); continue; }
+      const sameCluster = clusters[i] === clusters[j];
+      const r = Math.random();
+      if (sameCluster) {
+        // intra-cluster: oft YES, kaum NO
+        if (r < 0.80) row.push(YES);
+        else if (r < 0.82) row.push(NO);
+        else row.push(NEUTRAL);
+      } else {
+        // inter-cluster: selten YES, gelegentlich NO
+        if (r < 0.05) row.push(YES);
+        else if (r < 0.20) row.push(NO);
+        else row.push(NEUTRAL);
+      }
+    }
+    matrix.push(row);
+  }
+  // User-Spalte initial neutral — wird in biasUserIncoming() basierend auf User-Marks gefüllt
+  for (let i = 0; i < N; i++) matrix[i].push(NEUTRAL);
+  // User-Zeile: alle neutral, wird beim Klicken gefüllt
+  matrix.push(new Array(N + 1).fill(NEUTRAL));
+}
+
+// Reziprozität + Homophilie: was die anderen über User denken hängt ab von
+// (a) was User über sie markiert hat (direkte Reziprozität)
+// (b) wie viele von Users YES-Zielen die Person ebenfalls YES'd hat (geteilte Vibe).
+function biasUserIncoming() {
+  const userYes = [];
+  for (let i = 0; i < NAMES.length; i++) {
+    if (matrix[userIdx][i] === YES) userYes.push(i);
+  }
+
+  for (let i = 0; i < NAMES.length; i++) {
+    const userMark = matrix[userIdx][i];
+
+    // Anteil der User-YES-Ziele, die auch i YES'd hat (ohne i selbst)
+    let overlap = 0, denom = 0;
+    for (const t of userYes) {
+      if (t === i) continue;
+      denom++;
+      if (matrix[i][t] === YES) overlap++;
+    }
+    const overlapRatio = denom > 0 ? overlap / denom : 0;
+
+    let pYes, pNo;
+    if (userMark === YES) {
+      // hohe Reziprozitäts-Baseline + Bonus bei geteilter Vibe
+      pYes = 0.65 + overlapRatio * 0.30;   // 65–95%
+      pNo = 0.03;
+    } else if (userMark === NO) {
+      pYes = 0.04;
+      pNo = 0.40;
+    } else {
+      // neutral markiert: Grundrate plus Vibe-Bonus
+      pYes = 0.08 + overlapRatio * 0.30;   // 8–38%
+      pNo = 0.10;
+    }
+
+    const r = Math.random();
+    if (r < pYes) matrix[i][userIdx] = YES;
+    else if (r < pYes + pNo) matrix[i][userIdx] = NO;
+    else matrix[i][userIdx] = NEUTRAL;
+  }
+}
+
+// ============ Flow ============
+function startMarking() {
+  const input = document.getElementById("name-input");
+  const name = input.value.trim();
+  if (!name) { input.focus(); return; }
+  userName = name;
+  generateMatrix();
+  buildNameGrid();
+  showStep("mark");
+}
+
+function buildNameGrid() {
+  const grid = document.getElementById("name-grid");
+  grid.innerHTML = "";
+  for (let i = 0; i < NAMES.length; i++) {
+    const cell = document.createElement("div");
+    cell.className = "name-cell";
+    cell.textContent = NAMES[i];
+    cell.onclick = () => cycleState(i, cell);
+    grid.appendChild(cell);
+  }
+  updateStats();
+}
+
+function cycleState(i, cell) {
+  const cur = matrix[userIdx][i];
+  const next = (cur + 1) % 3;
+  matrix[userIdx][i] = next;
+  cell.classList.remove("yes", "no");
+  if (next === YES) cell.classList.add("yes");
+  else if (next === NO) cell.classList.add("no");
+  updateStats();
+}
+
+function updateStats() {
+  let yes = 0, no = 0, neu = 0;
+  for (let i = 0; i < NAMES.length; i++) {
+    const s = matrix[userIdx][i];
+    if (s === YES) yes++;
+    else if (s === NO) no++;
+    else neu++;
+  }
+  document.getElementById("mark-stats").textContent =
+    `${yes} YES · ${no} NO · ${neu} neutral`;
+}
+
+function showStep(name) {
+  document.querySelectorAll(".step").forEach(el => el.classList.remove("active"));
+  document.getElementById("step-" + name).classList.add("active");
+  window.scrollTo(0, 0);
+}
+
+function showTab(n) {
+  document.querySelectorAll(".tab").forEach(el => el.classList.remove("active"));
+  document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
+  document.getElementById("tab-btn-" + n).classList.add("active");
+  document.getElementById("tab-" + n).classList.add("active");
+}
+
+function goBack() { showStep("mark"); }
+
+// ============ Matching ============
+
+function findOneToOne() {
+  const matches = [];
+  for (let i = 0; i < NAMES.length; i++) {
+    if (matrix[userIdx][i] === YES && matrix[i][userIdx] === YES) matches.push(i);
+  }
+  return matches;
+}
+
+// Tab 2: Cliquen — alle Paare mutual YES, Größe 4..7, mit User
+function findStrictCliques() {
+  const cands = [];
+  for (let i = 0; i < NAMES.length; i++) {
+    if (matrix[userIdx][i] === YES && matrix[i][userIdx] === YES) cands.push(i);
+  }
+  const isMutualYes = (a, b) => matrix[a][b] === YES && matrix[b][a] === YES;
+  const results = [];
+  function dfs(group, startK) {
+    if (group.length >= MIN_GROUP && group.length <= MAX_GROUP) {
+      results.push(group.slice());
+    }
+    if (group.length >= MAX_GROUP) return;
+    for (let k = startK; k < cands.length; k++) {
+      const c = cands[k];
+      let ok = true;
+      for (const m of group) {
+        if (m === userIdx) continue; // cands sind bereits mutual YES mit user
+        if (!isMutualYes(c, m)) { ok = false; break; }
+      }
+      if (ok) {
+        group.push(c);
+        dfs(group, k + 1);
+        group.pop();
+      }
+    }
+  }
+  dfs([userIdx], 0);
+  return results;
+}
+
+// Tab 3: Größe 4..7, kein NO in beide Richtungen, jede:r erhält YES von ≥ ceil((n-1)/2)
+function findLooseGroups() {
+  const N = NAMES.length;
+  const cands = [];
+  for (let i = 0; i < N; i++) {
+    if (matrix[userIdx][i] !== NO && matrix[i][userIdx] !== NO) cands.push(i);
+  }
+
+  const results = [];
+  const RAW_CAP = 5000;
+
+  function checkValid(group) {
+    const n = group.length;
+    const threshold = Math.ceil((n - 1) / 2);
+    for (const m of group) {
+      let yesIn = 0;
+      for (const o of group) {
+        if (o !== m && matrix[o][m] === YES) yesIn++;
+      }
+      if (yesIn < threshold) return false;
+    }
+    return true;
+  }
+
+  function dfs(group, startK) {
+    if (results.length >= RAW_CAP) return;
+    if (group.length >= MIN_GROUP && group.length <= MAX_GROUP) {
+      if (checkValid(group)) results.push(group.slice());
+    }
+    if (group.length >= MAX_GROUP) return;
+    for (let k = startK; k < cands.length; k++) {
+      if (results.length >= RAW_CAP) return;
+      const c = cands[k];
+      let ok = true;
+      for (const m of group) {
+        if (matrix[c][m] === NO || matrix[m][c] === NO) { ok = false; break; }
+      }
+      if (ok) {
+        group.push(c);
+        dfs(group, k + 1);
+        group.pop();
+      }
+    }
+  }
+  dfs([userIdx], 0);
+  return results;
+}
+
+// Filter auf maximale Gruppen (keine echte Obermenge in den Resultaten)
+function filterMaximal(groups) {
+  if (groups.length === 0) return groups;
+  const sorted = groups.slice().sort((a, b) => b.length - a.length);
+  const sets = sorted.map(g => new Set(g));
+  const result = [];
+  for (let i = 0; i < sorted.length; i++) {
+    let dominated = false;
+    for (let j = 0; j < i; j++) {
+      if (sets[j].size <= sets[i].size) continue;
+      let isSub = true;
+      for (const x of sets[i]) if (!sets[j].has(x)) { isSub = false; break; }
+      if (isSub) { dominated = true; break; }
+    }
+    if (!dominated) result.push(sorted[i]);
+  }
+  return result;
+}
+
+function countYesEdges(group) {
+  let c = 0;
+  for (let i = 0; i < group.length; i++) {
+    for (let j = 0; j < group.length; j++) {
+      if (i !== j && matrix[group[i]][group[j]] === YES) c++;
+    }
+  }
+  return c;
+}
+
+// ============ Render ============
+
+function renderTab1(matches) {
+  const div = document.getElementById("tab-1");
+  let html = `<div class="tab-explainer">
+    Personen, bei denen <strong>du YES</strong> markiert hast und <strong>sie auch dich YES</strong>.
+  </div>`;
+  if (matches.length === 0) {
+    html += `<div class="empty">Keine 1:1-Matches.</div>`;
+  } else {
+    html += `<div class="stats">${matches.length} Matches</div>`;
+    for (const i of matches) {
+      html += `<div class="group"><div class="members">${NAMES[i]}</div></div>`;
+    }
+  }
+  div.innerHTML = html;
+}
+
+const DISPLAY_CAP = 50;
+
+function renderGroups(divId, groups, explainer, emptyText) {
+  const div = document.getElementById(divId);
+  let html = `<div class="tab-explainer">${explainer}</div>`;
+  if (groups.length === 0) {
+    html += `<div class="empty">${emptyText}</div>`;
+    div.innerHTML = html;
+    return;
+  }
+  groups.sort((a, b) => {
+    if (b.length !== a.length) return b.length - a.length;
+    return countYesEdges(b) - countYesEdges(a);
+  });
+  const total = groups.length;
+  const shown = Math.min(total, DISPLAY_CAP);
+  html += `<div class="stats">${total} Gruppen gefunden${total > shown ? ` — zeige die Top ${shown} (sortiert nach Größe, dann YES-Dichte)` : ""}</div>`;
+  for (let k = 0; k < shown; k++) {
+    const g = groups[k];
+    const yes = countYesEdges(g);
+    const totalEdges = g.length * (g.length - 1);
+    const members = g.map(idx =>
+      idx === userIdx
+        ? `<span class="you">${escapeHtml(userName)} (du)</span>`
+        : escapeHtml(NAMES[idx])
+    ).join(" · ");
+    html += `<div class="group">
+      <div class="meta">${g.length} Personen · ${yes}/${totalEdges} YES-Beziehungen</div>
+      <div class="members">${members}</div>
+    </div>`;
+  }
+  div.innerHTML = html;
+}
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
+  }[c]));
+}
+
+function computeAndShow() {
+  biasUserIncoming();
+  const t1 = findOneToOne();
+  const t2raw = findStrictCliques();
+  const t3raw = findLooseGroups();
+  const t2 = filterMaximal(t2raw);
+  const t3 = filterMaximal(t3raw);
+
+  document.getElementById("tab-btn-1").textContent = `1:1 (${t1.length})`;
+  document.getElementById("tab-btn-2").textContent = `Strenge Gruppen (${t2.length})`;
+  document.getElementById("tab-btn-3").textContent = `Lockere Gruppen (${t3.length})`;
+
+  renderTab1(t1);
+  renderGroups(
+    "tab-2", t2,
+    "Gruppen, in denen <strong>jede:r mit jedem anderen ein gegenseitiges YES</strong> hat (4–7 Personen, du inklusive). Nur maximale Gruppen werden gezeigt.",
+    "Keine strengen Gruppen gefunden."
+  );
+  renderGroups(
+    "tab-3", t3,
+    "Gruppen ohne NO zwischen den Mitgliedern, in denen <strong>jede:r YES von mindestens der Hälfte der anderen erhält</strong> (aufgerundet). Nur maximale Gruppen.",
+    "Keine lockeren Gruppen gefunden."
+  );
+
+  showStep("results");
+  showTab(1);
+}
+
+document.getElementById("name-input").addEventListener("keydown", e => {
+  if (e.key === "Enter") startMarking();
+});
+</script>
+</body>
+</html>
