@@ -522,7 +522,6 @@ function renderGroups(divId, groups, explainer, emptyText) {
   });
   const total = groups.length;
   const shown = Math.min(total, DISPLAY_CAP);
-  html += `<div class="stats">${total} Gruppen gefunden${total > shown ? ` — zeige die Top ${shown} (sortiert nach Größe, dann YES!-Dichte)` : ""}</div>`;
   for (let k = 0; k < shown; k++) {
     const g = groups[k];
     const yes = countYesEdges(g);
@@ -554,9 +553,10 @@ function computeAndShow() {
   const t2 = filterMaximal(t2raw);
   const t3 = filterMaximal(t3raw);
 
-  document.getElementById("tab-btn-1").textContent = `1:1 (${t1.length})`;
-  document.getElementById("tab-btn-2").textContent = `Strenge Gruppen (${t2.length})`;
-  document.getElementById("tab-btn-3").textContent = `Lockere Gruppen (${t3.length})`;
+  const fmt = n => n > 50 ? "50+" : String(n);
+  document.getElementById("tab-btn-1").textContent = `1:1 (${fmt(t1.length)})`;
+  document.getElementById("tab-btn-2").textContent = `Strenge Gruppen (${fmt(t2.length)})`;
+  document.getElementById("tab-btn-3").textContent = `Lockere Gruppen (${fmt(t3.length)})`;
 
   renderTab1(t1);
   renderGroups(
