@@ -187,7 +187,7 @@
     Jeder Klick wechselt:
     <span class="chip neutral">neutral</span>
     →
-    <span class="chip yes">YES!</span>
+    <span class="chip yes">YES:)</span>
     →
     <span class="chip no">NO...</span>
   </p>
@@ -352,7 +352,7 @@ function updateStats() {
     else neu++;
   }
   document.getElementById("mark-stats").textContent =
-    `${yes} YES! · ${no} NO... · ${neu} neutral`;
+    `${yes} YES:) · ${no} NO... · ${neu} neutral`;
 }
 
 function showStep(name) {
@@ -425,7 +425,7 @@ function findLooseGroups() {
   function checkValid(group) {
     const n = group.length;
     const threshold = Math.ceil((n - 1) / 2);
-    // jede:r muss mindestens der Hälfte der anderen ein YES! gegeben haben
+    // jede:r muss mindestens der Hälfte der anderen ein YES:) gegeben haben
     for (const m of group) {
       let yesOut = 0;
       for (const o of group) {
@@ -494,7 +494,7 @@ function countYesEdges(group) {
 function renderTab1(matches) {
   const div = document.getElementById("tab-1");
   let html = `<div class="tab-explainer">
-    Personen, bei denen ihr euch <strong>gegenseitig YES!</strong> gegeben habt.
+    Personen, bei denen ihr euch <strong>gegenseitig YES:)</strong> gegeben habt.
   </div>`;
   if (matches.length === 0) {
     html += `<div class="empty">Keine 1:1-Matches.</div>`;
@@ -533,7 +533,7 @@ function renderGroups(divId, groups, explainer, emptyText) {
         : escapeHtml(NAMES[idx])
     ).join(" · ");
     html += `<div class="group">
-      <div class="meta">${g.length} Menschen · ${yes}/${totalEdges} YES!-Beziehungen</div>
+      <div class="meta">${g.length} Menschen · ${yes}/${totalEdges} YES:) Verbindungen</div>
       <div class="members">${members}</div>
     </div>`;
   }
@@ -562,12 +562,12 @@ function computeAndShow() {
   renderTab1(t1);
   renderGroups(
     "tab-2", t2,
-    "Kleinere Gruppen (ab 4 Menschen, du inklusive), in denen <strong>alle einander YES!</strong> gegeben haben. Nur maximale Gruppen werden gezeigt.",
+    "Kleinere Gruppen (ab 4 Menschen, du inklusive), in denen <strong>alle einander YES:)</strong> gegeben haben. Nur maximale Gruppen werden gezeigt.",
     "Keine strengen Gruppen gefunden."
   );
   renderGroups(
     "tab-3", t3,
-    "Gruppen ohne NO... untereinander, in denen <strong>jede:r mindestens der Hälfte der anderen ein YES!</strong> gegeben hat. Nur maximale Gruppen.",
+    "Gruppen ohne NO... untereinander, in denen <strong>jede:r mindestens der Hälfte der anderen ein YES:)</strong> gegeben hat. Nur maximale Gruppen.",
     "Keine lockeren Gruppen gefunden."
   );
 
